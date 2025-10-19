@@ -47,7 +47,7 @@ export function GroupMembersList({ onSelectMember }: GroupMembersListProps) {
                           <p className="text-sm text-gray-500">{member.email}</p>
                         </div>
                         <div className="text-primary">
-                          View Gift List 12;
+                          View Gift List →
                         </div>
                       </div>
                     </button>

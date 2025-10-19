@@ -10,7 +10,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm h-16 flex justify-between items-center border-b shadow-sm px-4">
-        <h2 className="text-xl font-semibold text-primary">🎁 Present Monk</h2>
+        <h2 className="text-xl font-semibold text-primary">🎁 Gift Monk</h2>
         <Authenticated>
           <SignOutButton />
         </Authenticated>
@@ -44,7 +44,7 @@ function Content() {
       <Unauthenticated>
         <div className="max-w-md mx-auto text-center">
           <div className="mb-8">
-            <h1 className="text-5xl font-bold text-primary mb-4">🎁 Present Monk</h1>
+            <h1 className="text-5xl font-bold text-primary mb-4">🎁 Gift Monk</h1>
             <p className="text-xl text-secondary">
               Share gift wishlists with your group
             </p>

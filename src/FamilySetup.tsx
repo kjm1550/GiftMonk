@@ -39,7 +39,7 @@ export function GroupSetup() {
   return (
     <div className="max-w-md mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-primary mb-2">Welcome to Present Monk!</h1>
+        <h1 className="text-3xl font-bold text-primary mb-2">Welcome to Gift Monk!</h1>
         <p className="text-secondary">Create or join a group to get started</p>
       </div>
 
