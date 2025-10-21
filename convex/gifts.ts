@@ -70,6 +70,48 @@ export const getMyGiftList = query({
   },
 });
 
+export const getUserGiftItemsBasedOnGroup = query({
+  args: {
+    memberId: v.id("users"),
+    groupId: v.id("groups"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Must be logged in to see gift items");
+    }
+
+    // Don't allow viewing own gift list with status
+    if (userId === args.memberId) {
+      return [];
+    }
+
+    // Verify the current user is a member of the specified group
+    const membership = await ctx.db
+      .query("groupMembers")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("groupId"), args.groupId))
+      .first();
+
+    if (!membership) {
+      throw new Error("You must be a member of this group to view gift lists.");
+    }
+
+    // Fetch gift items for the target member within the specified group
+    const items = await ctx.db
+      .query("giftItems")
+      .withIndex("by_owner", (q) => q.eq("ownerId", args.memberId))
+      .filter((q) => q.eq(q.field("groupId"), args.groupId))
+      .collect();
+
+    // Convert legacy purchased field to status for display
+    return items.map((item) => ({
+      ...item,
+      status: item.status || (item.purchased ? "purchased" : "up_for_grabs"),
+    }));
+    },
+  });
+
 export const getGroupMemberGifts = query({
   args: {
     memberId: v.id("users"),

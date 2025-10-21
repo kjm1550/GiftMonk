@@ -9,6 +9,7 @@ import { Account } from "./Account";
 export function Dashboard() {
   const [activeTab, setActiveTab] = useState<"my-list" | "group" | "account">("my-list");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const userGroup = useQuery(api.groups.getUserGroup);
   const loggedInUser = useQuery(api.auth.loggedInUser);
 
@@ -37,6 +38,7 @@ export function Dashboard() {
             onClick={() => {
               setActiveTab("my-list");
               setSelectedMemberId(null);
+              setSelectedGroupId(null);
             }}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
               activeTab === "my-list"
@@ -50,6 +52,7 @@ export function Dashboard() {
             onClick={() => {
               setActiveTab("group");
               setSelectedMemberId(null);
+              setSelectedGroupId(null);
             }}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
               activeTab === "group"
@@ -63,6 +66,7 @@ export function Dashboard() {
             onClick={() => {
               setActiveTab("account");
               setSelectedMemberId(null);
+              setSelectedGroupId(null);
             }}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
               activeTab === "account"
@@ -78,13 +82,17 @@ export function Dashboard() {
       <div className="max-w-4xl mx-auto">
         {activeTab === "my-list" && <MyGiftList />}
         {activeTab === "group" && !selectedMemberId && (
-          <GroupMembersList onSelectMember={setSelectedMemberId} />
+          <GroupMembersList onSelectMember={setSelectedMemberId} onSelectGroup={setSelectedGroupId} />
         )}
         {activeTab === "account" && <Account />}
         {selectedMemberId && (
           <MemberGiftList
             memberId={selectedMemberId}
-            onBack={() => setSelectedMemberId(null)}
+            groupId={selectedGroupId}
+            onBack={() => {
+              setSelectedMemberId(null); 
+              setSelectedGroupId(null);
+            }}
           />
         )}
       </div>

@@ -4,11 +4,13 @@ import { toast } from "sonner";
 
 interface MemberGiftListProps {
   memberId: string;
+  groupId: string;
   onBack: () => void;
 }
 
-export function MemberGiftList({ memberId, onBack }: MemberGiftListProps) {
-  const memberGifts = useQuery(api.gifts.getGroupMemberGifts, { memberId: memberId as any });
+export function MemberGiftList({ memberId, groupId, onBack }: MemberGiftListProps) {
+  // const memberGifts = useQuery(api.gifts.getGroupMemberGifts, { memberId: memberId as any });
+  const memberGifts = useQuery(api.gifts.getUserGiftItemsBasedOnGroup, { memberId: memberId as any, groupId: groupId as any });
   const groupMembers = useQuery(api.groups.getGroupMembers);
   const updateGiftStatus = useMutation(api.gifts.updateGiftStatus);
 

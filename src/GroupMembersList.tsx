@@ -3,9 +3,10 @@ import { api } from "../convex/_generated/api";
 
 interface GroupMembersListProps {
   onSelectMember: (memberId: string) => void;
+  onSelectGroup: (groupId: string) => void;
 }
 
-export function GroupMembersList({ onSelectMember }: GroupMembersListProps) {
+export function GroupMembersList({ onSelectMember, onSelectGroup }: GroupMembersListProps) {
   const groupsWithMembers = useQuery(api.groupMembers.getGroupMembersGrouped);
 
   return (
@@ -38,7 +39,10 @@ export function GroupMembersList({ onSelectMember }: GroupMembersListProps) {
                   groupGroup.members.map((member) => (
                     <button
                       key={member._id}
-                      onClick={() => onSelectMember(member._id)}
+                      onClick={() => {
+                        onSelectMember(member._id);
+                        onSelectGroup(groupGroup.group._id);
+                      }}
                       className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-primary transition-colors"
                     >
                       <div className="flex items-center justify-between">
