@@ -70,6 +70,17 @@ export const getMyGiftList = query({
   },
 });
 
+// need to get the user name of the user who changed the status
+export const getUserDisplayName = query({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    return user?.name ?? "Unknown User";
+  },
+});
+
 export const getUserGiftItemsBasedOnGroup = query({
   args: {
     memberId: v.id("users"),
@@ -105,9 +116,17 @@ export const getUserGiftItemsBasedOnGroup = query({
       .collect();
 
     // Convert legacy purchased field to status for display
-    return items.map((item) => ({
-      ...item,
-      status: item.status || (item.purchased ? "purchased" : "up_for_grabs"),
+    return Promise.all(items.map(async (item) => {
+      let statusChangedByName: string | undefined;
+      if (item.statusChangedBy) {
+        const user = await ctx.db.get(item.statusChangedBy);
+        statusChangedByName = user?.name ?? user?.email ?? "Unknown User";
+      }
+      return {
+        ...item,
+        status: item.status || (item.purchased ? "purchased" : "up_for_grabs"),
+        statusChangedByName,
+      };
     }));
     },
   });

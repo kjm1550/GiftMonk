@@ -43,7 +43,7 @@ export function MemberGiftList({ memberId, groupId, onBack }: MemberGiftListProp
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "purchased": return "Purchased ✓";
+      case "purchased": return "Purchased";
       case "claimed": return "Claimed";
       default: return "Up for Grabs";
     }
@@ -82,6 +82,7 @@ export function MemberGiftList({ memberId, groupId, onBack }: MemberGiftListProp
       default: return "text-gray-900";
     }
   };
+  console.log("Member Gifts:", memberGifts);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
@@ -125,7 +126,7 @@ export function MemberGiftList({ memberId, groupId, onBack }: MemberGiftListProp
                     </a>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
-                    Status: {getStatusText(gift.status)}
+                    Status: {getStatusText(gift.status)} {gift.status !== "up_for_grabs" && `by  ${gift.statusChangedByName}`}
                   </p>
                 </div>
                 <button
