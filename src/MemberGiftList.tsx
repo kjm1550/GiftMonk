@@ -82,7 +82,6 @@ export function MemberGiftList({ memberId, groupId, onBack }: MemberGiftListProp
       default: return "text-gray-900";
     }
   };
-  console.log("Member Gifts:", memberGifts);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
