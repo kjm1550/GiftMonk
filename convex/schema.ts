@@ -11,7 +11,7 @@ const applicationTables = {
   groupMembers: defineTable({
     groupId: v.id("groups"),
     userId: v.id("users"),
-    isActive: v.optional(v.boolean()), // Track which group is currently active
+    isActive: v.optional(v.boolean()), // Want to remove, it is not being used anymore
   })
     .index("by_group", ["groupId"])
     .index("by_user", ["userId"])

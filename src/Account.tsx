@@ -15,7 +15,6 @@ export function Account() {
   const allGroups = useQuery(api.groups.getAllGroups);
   
   const updateUserName = useMutation(api.account.updateUserName);
-  const setActiveGroup = useMutation(api.account.setActiveGroup);
   const leaveGroup = useMutation(api.account.leaveGroup);
   const joinGroup = useMutation(api.groups.joinGroup);
   const createGroup = useMutation(api.groups.createGroup);
@@ -41,14 +40,7 @@ export function Account() {
     }
   };
 
-  const handleSetActiveGroup = async (groupId: string) => {
-    try {
-      await setActiveGroup({ groupId: groupId as any });
-      toast.success("Active group changed!");
-    } catch {
-      toast.error("Failed to change active group");
-    }
-  };
+  // setActiveGroup removed — membership is stateless; client should select group when performing actions.
 
   const handleLeaveGroup = async (groupId: string) => {
     if (userGroups && userGroups.length <= 1) {
@@ -153,30 +145,17 @@ export function Account() {
             userGroups?.map((group) => (
               <div
                 key={group._id}
-                className={`p-4 border rounded-lg ${
-                  group.isActive ? "border-primary bg-primary/5" : "border-gray-200"
-                }`}
+                className={`p-4 border rounded-lg border-gray-200`}
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-medium text-gray-900">
                       {group.name}
-                      {group.isActive && (
-                        <span className="ml-2 text-xs bg-primary text-white px-2 py-1 rounded">
-                          Active
-                        </span>
-                      )}
+                      {/* Active flag removed */}
                     </h3>
                   </div>
                   <div className="flex gap-2">
-                      {!group.isActive && (
-                      <button
-                        onClick={() => void handleSetActiveGroup(group._id)}
-                        className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                      >
-                        Set Active
-                      </button>
-                    )}
+                    {/* removed Set Active button */}
                     <button
                       onClick={() => void handleLeaveGroup(group._id)}
                       className="text-sm px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"

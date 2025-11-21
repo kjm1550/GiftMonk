@@ -7,19 +7,26 @@ export function MyGiftList() {
   const [title, setTitle] = useState("");
   const [link, setLink] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
 
   const myGifts = useQuery(api.gifts.getMyGiftList);
+  const userGroups = useQuery(api.groups.getUserGroups);
   const addGiftItem = useMutation(api.gifts.addGiftItem);
   const deleteGiftItem = useMutation(api.gifts.deleteGiftItem);
 
   const handleAddGift = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+    if (!selectedGroupId) {
+      toast.error("Select a group to add the gift to");
+      return;
+    }
 
     try {
       await addGiftItem({
         title: title.trim(),
         link: link.trim() || undefined,
+        groupId: selectedGroupId as any,
       });
       setTitle("");
       setLink("");
@@ -79,6 +86,17 @@ export function MyGiftList() {
               onChange={(e) => setLink(e.target.value)}
               className="w-full px-4 py-3 rounded border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
+            <select
+              value={selectedGroupId}
+              onChange={(e) => setSelectedGroupId(e.target.value)}
+              className="w-full px-4 py-3 rounded border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              required
+            >
+              <option value="">Select group...</option>
+              {userGroups?.map((g) => (
+                <option key={g._id} value={g._id}>{g.name}</option>
+              ))}
+            </select>
             <button
               type="submit"
               className="w-full px-4 py-3 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors"
