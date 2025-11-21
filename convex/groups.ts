@@ -17,16 +17,10 @@ export const createGroup = mutation({
       createdBy: userId,
     });
 
-    // Set this as the active group if it's the user's first group
-    const existingMemberships = await ctx.db
-      .query("groupMembers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-
     await ctx.db.insert("groupMembers", {
       groupId,
       userId,
-      isActive: existingMemberships.length === 0, // First group is active by default
+      // membership is stateless; we no longer set an active flag
     });
 
     return groupId;
@@ -53,16 +47,10 @@ export const joinGroup = mutation({
       throw new Error("Already a member of this group");
     }
 
-    // Check if user has any groups (to determine if this should be active)
-    const userMemberships = await ctx.db
-      .query("groupMembers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-
     await ctx.db.insert("groupMembers", {
       groupId: args.groupId,
       userId,
-      isActive: userMemberships.length === 0, // First group is active by default
+      // membership is stateless
     });
   },
 });
@@ -75,31 +63,14 @@ export const getUserGroup = query({
       return null;
     }
 
-    // Get the active group
-    const membership = await ctx.db
+    // Return the first group the user belongs to (client should supply explicit groupId for actions)
+    const firstMembership = await ctx.db
       .query("groupMembers")
       .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("isActive"), true))
       .first();
 
-    if (!membership) {
-      // If no active group, get the first group
-      const firstMembership = await ctx.db
-        .query("groupMembers")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
-        .first();
-      
-      if (!firstMembership) {
-        return null;
-      }
-
-      // Return first group (will be set as active by a separate mutation)
-      const group = await ctx.db.get(firstMembership.groupId);
-      return group;
-    }
-
-    const group = await ctx.db.get(membership.groupId);
-    return group;
+    if (!firstMembership) return null;
+    return await ctx.db.get(firstMembership.groupId);
   },
 });
 
@@ -159,7 +130,6 @@ export const getUserGroups = query({
         return {
           ...group,
           membershipId: membership._id,
-          isActive: membership.isActive || false,
         };
       })
     );

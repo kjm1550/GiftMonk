@@ -6,6 +6,7 @@ export const addGiftItem = mutation({
   args: {
     title: v.string(),
     link: v.optional(v.string()),
+    groupId: v.id("groups"),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -13,15 +14,14 @@ export const addGiftItem = mutation({
       throw new Error("Must be logged in to add gift items");
     }
 
-    // Get user's active group
+    // Verify user is a member of the provided group
     const membership = await ctx.db
       .query("groupMembers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("isActive"), true))
+      .withIndex("by_user_and_group", (q) => q.eq("userId", userId).eq("groupId", args.groupId))
       .first();
 
     if (!membership) {
-      throw new Error("Must have an active group to add gift items");
+      throw new Error("Must be a member of the selected group to add gift items");
     }
 
     return await ctx.db.insert("giftItems", {
@@ -29,7 +29,7 @@ export const addGiftItem = mutation({
       link: args.link,
       status: "up_for_grabs",
       ownerId: userId,
-      groupId: membership.groupId,
+      groupId: args.groupId,
     });
   },
 });
@@ -136,41 +136,10 @@ export const getGroupMemberGifts = query({
     memberId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      return [];
-    }
-
-    // Don't allow viewing own gift list with status
-    if (args.memberId === userId) {
-      return [];
-    }
-
-    // Verify both users are in the same group
-    const userMembership = await ctx.db
-      .query("groupMembers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .first();
-
-    const targetMembership = await ctx.db
-      .query("groupMembers")
-      .withIndex("by_user", (q) => q.eq("userId", args.memberId))
-      .first();
-
-    if (!userMembership || !targetMembership || userMembership.groupId !== targetMembership.groupId) {
-      throw new Error("Can only view gift lists of group members");
-    }
-
-    const items = await ctx.db
-      .query("giftItems")
-      .withIndex("by_owner", (q) => q.eq("ownerId", args.memberId))
-      .collect();
-
-    // Convert legacy purchased field to status for display
-    return items.map((item) => ({
-      ...item,
-      status: item.status || (item.purchased ? "purchased" : "up_for_grabs"),
-    }));
+    // This legacy helper is no longer used. Prefer `getUserGiftItemsBasedOnGroup` which
+    // requires an explicit `groupId` to validate membership. Return empty list to avoid
+    // accidental exposure.
+    return [];
   },
 });
 
@@ -198,10 +167,10 @@ export const updateGiftStatus = mutation({
     // Verify user is in the same group
     const userMembership = await ctx.db
       .query("groupMembers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user_and_group", (q) => q.eq("userId", userId).eq("groupId", gift.groupId))
       .first();
 
-    if (!userMembership || userMembership.groupId !== gift.groupId) {
+    if (!userMembership) {
       throw new Error("Can only update status for group members' items");
     }
 
