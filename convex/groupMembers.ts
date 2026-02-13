@@ -43,7 +43,6 @@ export const getGroupMembersGrouped = query({
           group: {
             _id: group?._id,
             name: group?.name || "Unknown Group",
-            isActive: userMembership.isActive || false,
           },
           members: otherMembers,
         };

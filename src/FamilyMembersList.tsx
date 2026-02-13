@@ -22,11 +22,7 @@ export function GroupMembersList({ onSelectMember }: GroupMembersListProps) {
             <div key={groupGroup.group._id} className="space-y-3">
               <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 flex items-center gap-2">
                 {groupGroup.group.name}
-                {groupGroup.group.isActive && (
-                  <span className="text-xs bg-primary text-white px-2 py-1 rounded">
-                    Active
-                  </span>
-                )}
+                {/* Active flag removed */}
               </h3>
               
               <div className="space-y-3">
