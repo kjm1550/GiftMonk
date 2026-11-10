@@ -15,7 +15,7 @@ export function SignInForm() {
         onSubmit={(e) => {
           e.preventDefault();
           setSubmitting(true);
-          const formData = new FormData(e.target as HTMLFormElement);
+          const formData = new FormData(e.currentTarget);
           formData.set("flow", flow);
           void signIn("password", formData).catch((error) => {
             let toastTitle = "";

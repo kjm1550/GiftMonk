@@ -2,6 +2,8 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
 
+type GiftStatus = "up_for_grabs" | "claimed" | "purchased";
+
 interface MemberGiftListProps {
   memberId: string;
   groupId: string;
@@ -15,7 +17,7 @@ export function MemberGiftList({ memberId, groupId, onBack }: MemberGiftListProp
 
   const member = groupMembers?.find((m) => m._id === memberId);
 
-  const handleStatusChange = async (giftId: string, newStatus: "up_for_grabs" | "claimed" | "purchased") => {
+  const handleStatusChange = async (giftId: string, newStatus: GiftStatus) => {
     try {
       await updateGiftStatus({ giftId: giftId as any, status: newStatus });
       toast.success("Gift status updated!");
@@ -56,7 +58,7 @@ export function MemberGiftList({ memberId, groupId, onBack }: MemberGiftListProp
     }
   };
 
-  const getNextStatus = (status: string) => {
+  const getNextStatus = (status: string): GiftStatus => {
     switch (status) {
       case "up_for_grabs": return "claimed";
       case "claimed": return "purchased";
@@ -136,7 +138,7 @@ export function MemberGiftList({ memberId, groupId, onBack }: MemberGiftListProp
                   </p>
                 </div>
                 <button
-                  onClick={() => void handleStatusChange(gift._id, getNextStatus(gift.status) as any)}
+                  onClick={() => void handleStatusChange(gift._id, getNextStatus(gift.status))}
                   className={`px-4 py-2 rounded-md font-medium transition-colors ${getButtonColor(gift.status)}`}
                 >
                   {getNextStatusText(gift.status)}

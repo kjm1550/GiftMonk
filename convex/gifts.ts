@@ -51,7 +51,7 @@ export const getMyGiftList = query({
     const groupIds = [...new Set(items.map(item => item.groupId).filter(Boolean))];
     const groups = await Promise.all(
       groupIds.map(async (groupId) => {
-        const group: any = await ctx.db.get(groupId as any);
+        const group = await ctx.db.get(groupId);
         return { id: groupId, name: group?.name || "Unknown Group" };
       })
     );
