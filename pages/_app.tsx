@@ -5,7 +5,7 @@ import { ConvexAuthProvider } from '@convex-dev/auth/react';
 import { ConvexReactClient } from 'convex/react';
 
 // Convex client is browser-only; make sure the env var is exposed as NEXT_PUBLIC_
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL as string);
+const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL);
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
