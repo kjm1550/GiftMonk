@@ -9,9 +9,8 @@ interface MemberGiftListProps {
 }
 
 export function MemberGiftList({ memberId, groupId, onBack }: MemberGiftListProps) {
-  // const memberGifts = useQuery(api.gifts.getGroupMemberGifts, { memberId: memberId as any });
   const memberGifts = useQuery(api.gifts.getUserGiftItemsBasedOnGroup, { memberId: memberId as any, groupId: groupId as any });
-  const groupMembers = useQuery(api.groups.getGroupMembers);
+  const groupMembers = useQuery(api.groups.getGroupMembers, { groupId: groupId as any });
   const updateGiftStatus = useMutation(api.gifts.updateGiftStatus);
 
   const member = groupMembers?.find((m) => m._id === memberId);
@@ -24,6 +23,14 @@ export function MemberGiftList({ memberId, groupId, onBack }: MemberGiftListProp
       toast.error("Failed to update gift status");
     }
   };
+
+  if (groupMembers === undefined || memberGifts === undefined) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border p-6 flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!member) {
     return (
