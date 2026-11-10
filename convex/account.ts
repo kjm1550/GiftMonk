@@ -2,8 +2,6 @@ import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-// `setActiveGroup` removed — membership is stateless now; client supplies `groupId` for actions.
-
 export const leaveGroup = mutation({
   args: {
     groupId: v.id("groups"),

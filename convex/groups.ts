@@ -20,7 +20,6 @@ export const createGroup = mutation({
     await ctx.db.insert("groupMembers", {
       groupId,
       userId,
-      // membership is stateless; we no longer set an active flag
     });
 
     return groupId;
@@ -50,7 +49,6 @@ export const joinGroup = mutation({
     await ctx.db.insert("groupMembers", {
       groupId: args.groupId,
       userId,
-      // membership is stateless
     });
   },
 });
@@ -130,6 +128,9 @@ export const getUserGroups = query({
     const groups = await Promise.all(
       memberships.map(async (membership) => {
         const group = await ctx.db.get(membership.groupId);
+        if (!group) {
+          return null;
+        }
         return {
           ...group,
           membershipId: membership._id,
@@ -137,7 +138,7 @@ export const getUserGroups = query({
       })
     );
 
-    return groups.filter(g => g !== null);
+    return groups.filter((group) => group !== null);
   },
 });
 

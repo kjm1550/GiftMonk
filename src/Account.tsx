@@ -3,9 +3,13 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
 
-export function Account() {
+interface AccountProps {
+  onSelectGroup: (groupId: string) => void;
+}
+
+export function Account({ onSelectGroup }: AccountProps) {
   const [name, setName] = useState("");
-  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [groupToJoinId, setGroupToJoinId] = useState("");
   const [showJoinGroup, setShowJoinGroup] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
@@ -40,8 +44,6 @@ export function Account() {
     }
   };
 
-  // setActiveGroup removed — membership is stateless; client should select group when performing actions.
-
   const handleLeaveGroup = async (groupId: string) => {
     if (userGroups && userGroups.length <= 1) {
       toast.error("You must be part of at least one group");
@@ -58,13 +60,13 @@ export function Account() {
 
   const handleJoinGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedGroupId) return;
+    if (!groupToJoinId) return;
 
     try {
-      await joinGroup({ groupId: selectedGroupId as any });
+      await joinGroup({ groupId: groupToJoinId as any });
       toast.success("Joined group successfully!");
       setShowJoinGroup(false);
-      setSelectedGroupId("");
+      setGroupToJoinId("");
     } catch (error: any) {
       toast.error(error?.message || "Failed to join group");
     }
@@ -143,19 +145,18 @@ export function Account() {
             </p>
           ) : (
             userGroups?.map((group) => (
-              <div
-                key={group._id}
-                className={`p-4 border rounded-lg border-gray-200`}
-              >
+              <div key={group._id} className="p-4 border rounded-lg border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium text-gray-900">
-                      {group.name}
-                      {/* Active flag removed */}
-                    </h3>
+                    <h3 className="font-medium text-gray-900">{group.name}</h3>
                   </div>
                   <div className="flex gap-2">
-                    {/* removed Set Active button */}
+                    <button
+                      onClick={() => onSelectGroup(group._id)}
+                      className="text-sm px-3 py-1 bg-primary text-white rounded hover:bg-primary-hover"
+                    >
+                      View
+                    </button>
                     <button
                       onClick={() => void handleLeaveGroup(group._id)}
                       className="text-sm px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
@@ -197,8 +198,8 @@ export function Account() {
             ) : (
               <>
                 <select
-                  value={selectedGroupId}
-                  onChange={(e) => setSelectedGroupId(e.target.value)}
+                  value={groupToJoinId}
+                  onChange={(e) => setGroupToJoinId(e.target.value)}
                   className="w-full px-4 py-3 rounded border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none mb-3"
                 >
                   <option value="">Select a group...</option>
@@ -210,7 +211,7 @@ export function Account() {
                 </select>
                 <button
                   type="submit"
-                  disabled={!selectedGroupId}
+                  disabled={!groupToJoinId}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
                   Join
