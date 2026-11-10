@@ -75,16 +75,19 @@ export const getUserGroup = query({
 });
 
 export const getGroupMembers = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    groupId: v.id("groups"),
+  },
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       return [];
     }
 
+    // Verify the current user belongs to the requested group
     const membership = await ctx.db
       .query("groupMembers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user_and_group", (q) => q.eq("userId", userId).eq("groupId", args.groupId))
       .first();
 
     if (!membership) {
@@ -93,7 +96,7 @@ export const getGroupMembers = query({
 
     const memberships = await ctx.db
       .query("groupMembers")
-      .withIndex("by_group", (q) => q.eq("groupId", membership.groupId))
+      .withIndex("by_group", (q) => q.eq("groupId", args.groupId))
       .collect();
 
     const members = await Promise.all(
