@@ -70,17 +70,6 @@ export const getMyGiftList = query({
   },
 });
 
-// need to get the user name of the user who changed the status
-export const getUserDisplayName = query({
-  args: {
-    userId: v.id("users"),
-  },
-  handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.userId);
-    return user?.name ?? "Unknown User";
-  },
-});
-
 export const getUserGiftItemsBasedOnGroup = query({
   args: {
     memberId: v.id("users"),
@@ -130,18 +119,6 @@ export const getUserGiftItemsBasedOnGroup = query({
     }));
     },
   });
-
-export const getGroupMemberGifts = query({
-  args: {
-    memberId: v.id("users"),
-  },
-  handler: async (ctx, args) => {
-    // This legacy helper is no longer used. Prefer `getUserGiftItemsBasedOnGroup` which
-    // requires an explicit `groupId` to validate membership. Return empty list to avoid
-    // accidental exposure.
-    return [];
-  },
-});
 
 export const updateGiftStatus = mutation({
   args: {

@@ -10,13 +10,25 @@ export function Dashboard() {
   const [activeTab, setActiveTab] = useState<"my-list" | "group" | "account">("my-list");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const userGroup = useQuery(api.groups.getUserGroup);
+  const userGroups = useQuery(api.groups.getUserGroups);
   const loggedInUser = useQuery(api.auth.loggedInUser);
 
-  if (!userGroup || !loggedInUser) {
+  if (userGroups === undefined || loggedInUser === undefined) {
     return (
       <div className="flex justify-center items-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Fall back to the first group if the selected one is gone (e.g. after leaving it)
+  const activeGroup =
+    userGroups.find((group) => group._id === selectedGroupId) ?? userGroups[0];
+
+  if (!activeGroup) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border p-6 text-center">
+        <p className="text-gray-500">You're not part of any groups yet.</p>
       </div>
     );
   }
@@ -25,8 +37,28 @@ export function Dashboard() {
     <div>
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-primary mb-2">
-          {userGroup.name}
+          {activeGroup.name}
         </h1>
+        {userGroups.length > 1 && (
+          <div className="flex items-center justify-center gap-2 text-sm text-secondary mb-2">
+            <label htmlFor="group-switcher">Group</label>
+            <select
+              id="group-switcher"
+              value={activeGroup._id}
+              onChange={(e) => {
+                setSelectedGroupId(e.target.value);
+                setSelectedMemberId(null);
+              }}
+              className="px-3 py-1.5 rounded border border-gray-200 bg-white text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            >
+              {userGroups.map((group) => (
+                <option key={group._id} value={group._id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <p className="text-secondary">
           Welcome back, {loggedInUser.name || loggedInUser.email}!
         </p>
@@ -38,7 +70,6 @@ export function Dashboard() {
             onClick={() => {
               setActiveTab("my-list");
               setSelectedMemberId(null);
-              setSelectedGroupId(null);
             }}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
               activeTab === "my-list"
@@ -52,7 +83,6 @@ export function Dashboard() {
             onClick={() => {
               setActiveTab("group");
               setSelectedMemberId(null);
-              setSelectedGroupId(null);
             }}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
               activeTab === "group"
@@ -66,7 +96,6 @@ export function Dashboard() {
             onClick={() => {
               setActiveTab("account");
               setSelectedMemberId(null);
-              setSelectedGroupId(null);
             }}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
               activeTab === "account"
@@ -80,19 +109,24 @@ export function Dashboard() {
       </div>
 
       <div className="max-w-4xl mx-auto">
-        {activeTab === "my-list" && <MyGiftList />}
+        {activeTab === "my-list" && <MyGiftList groupId={activeGroup._id} />}
         {activeTab === "group" && !selectedMemberId && (
-          <GroupMembersList onSelectMember={setSelectedMemberId} onSelectGroup={setSelectedGroupId} />
+          <GroupMembersList groupId={activeGroup._id} onSelectMember={setSelectedMemberId} />
         )}
-        {activeTab === "account" && <Account />}
+        {activeTab === "account" && (
+          <Account
+            onSelectGroup={(groupId) => {
+              setSelectedGroupId(groupId);
+              setSelectedMemberId(null);
+              setActiveTab("my-list");
+            }}
+          />
+        )}
         {selectedMemberId && (
           <MemberGiftList
             memberId={selectedMemberId}
-            groupId={selectedGroupId}
-            onBack={() => {
-              setSelectedMemberId(null); 
-              setSelectedGroupId(null);
-            }}
+            groupId={activeGroup._id}
+            onBack={() => setSelectedMemberId(null)}
           />
         )}
       </div>
