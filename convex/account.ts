@@ -31,6 +31,24 @@ export const leaveGroup = mutation({
     if (!targetMembership) {
       throw new Error("Not a member of this group");
     }
+
+    // Leaving a group permanently deletes that user's lists and gifts in it.
+    const userWishlists = await ctx.db
+      .query("wishlists")
+      .withIndex("by_created_by", (q) => q.eq("createdBy", userId))
+      .filter((q) => q.eq(q.field("groupId"), args.groupId))
+      .collect();
+
+    for (const wishlist of userWishlists) {
+      const gifts = await ctx.db
+        .query("giftItems")
+        .withIndex("by_wishlist", (q) => q.eq("wishlistId", wishlist._id))
+        .collect();
+
+      await Promise.all(gifts.map((gift) => ctx.db.delete(gift._id)));
+      await ctx.db.delete(wishlist._id);
+    }
+
     await ctx.db.delete(targetMembership._id);
   },
 });

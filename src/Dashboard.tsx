@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { MyGiftList } from "./MyGiftList";
-import { GroupMembersList } from "./GroupMembersList";
-import { MemberGiftList } from "./MemberGiftList";
+import { GroupGiftLists } from "./GroupGiftLists";
 import { Account } from "./Account";
 
 export function Dashboard() {
-  const [activeTab, setActiveTab] = useState<"my-list" | "group" | "account">("my-list");
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<
+    "my-list" | "group-gifts" | "account"
+  >("my-list");
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const userGroups = useQuery(api.groups.getUserGroups);
   const loggedInUser = useQuery(api.auth.loggedInUser);
@@ -47,7 +47,6 @@ export function Dashboard() {
               value={activeGroup._id}
               onChange={(e) => {
                 setSelectedGroupId(e.target.value);
-                setSelectedMemberId(null);
               }}
               className="px-3 py-1.5 rounded border border-gray-200 bg-white text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             >
@@ -65,39 +64,30 @@ export function Dashboard() {
       </div>
 
       <div className="flex justify-center mb-6">
-        <div className="bg-white rounded-lg p-1 shadow-sm border">
+        <div className="w-full sm:w-auto bg-white rounded-lg p-1 shadow-sm border flex flex-wrap justify-center gap-1">
           <button
-            onClick={() => {
-              setActiveTab("my-list");
-              setSelectedMemberId(null);
-            }}
-            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+            onClick={() => setActiveTab("my-list")}
+            className={`px-4 sm:px-6 py-2 rounded-md font-medium transition-colors ${
               activeTab === "my-list"
                 ? "bg-primary text-white"
                 : "text-gray-600 hover:text-primary"
             }`}
           >
-            My Gift List
+            My Gift Lists
           </button>
           <button
-            onClick={() => {
-              setActiveTab("group");
-              setSelectedMemberId(null);
-            }}
-            className={`px-6 py-2 rounded-md font-medium transition-colors ${
-              activeTab === "group"
+            onClick={() => setActiveTab("group-gifts")}
+            className={`px-4 sm:px-6 py-2 rounded-md font-medium transition-colors ${
+              activeTab === "group-gifts"
                 ? "bg-primary text-white"
                 : "text-gray-600 hover:text-primary"
             }`}
           >
-            Group Members
+            Group's Gift Lists
           </button>
           <button
-            onClick={() => {
-              setActiveTab("account");
-              setSelectedMemberId(null);
-            }}
-            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+            onClick={() => setActiveTab("account")}
+            className={`px-4 sm:px-6 py-2 rounded-md font-medium transition-colors ${
               activeTab === "account"
                 ? "bg-primary text-white"
                 : "text-gray-600 hover:text-primary"
@@ -109,24 +99,18 @@ export function Dashboard() {
       </div>
 
       <div className="max-w-4xl mx-auto">
-        {activeTab === "my-list" && <MyGiftList groupId={activeGroup._id} />}
-        {activeTab === "group" && !selectedMemberId && (
-          <GroupMembersList groupId={activeGroup._id} onSelectMember={setSelectedMemberId} />
+        {activeTab === "my-list" && (
+          <MyGiftList key={activeGroup._id} groupId={activeGroup._id} />
+        )}
+        {activeTab === "group-gifts" && (
+          <GroupGiftLists key={activeGroup._id} groupId={activeGroup._id} />
         )}
         {activeTab === "account" && (
           <Account
             onSelectGroup={(groupId) => {
               setSelectedGroupId(groupId);
-              setSelectedMemberId(null);
               setActiveTab("my-list");
             }}
-          />
-        )}
-        {selectedMemberId && (
-          <MemberGiftList
-            memberId={selectedMemberId}
-            groupId={activeGroup._id}
-            onBack={() => setSelectedMemberId(null)}
           />
         )}
       </div>
