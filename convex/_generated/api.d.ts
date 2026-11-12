@@ -10,7 +10,6 @@
 
 import type * as account from "../account.js";
 import type * as auth from "../auth.js";
-import type * as gifts from "../gifts.js";
 import type * as groupMembers from "../groupMembers.js";
 import type * as groups from "../groups.js";
 import type * as http from "../http.js";
@@ -27,7 +26,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   account: typeof account;
   auth: typeof auth;
-  gifts: typeof gifts;
   groupMembers: typeof groupMembers;
   groups: typeof groups;
   http: typeof http;

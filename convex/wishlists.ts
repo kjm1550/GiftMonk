@@ -61,12 +61,11 @@ export const getMyWishlists = query({
 
     const wishlists = await ctx.db
       .query("wishlists")
-      .withIndex("by_group", (q) => q.eq("groupId", args.groupId))
+      .withIndex("by_created_by", (q) => q.eq("createdBy", userId))
+      .filter((q) => q.eq(q.field("groupId"), args.groupId))
       .collect();
 
-    return wishlists
-      .filter((wishlist) => wishlist.createdBy === userId)
-      .sort((a, b) => a._creationTime - b._creationTime);
+    return wishlists.sort((a, b) => a._creationTime - b._creationTime);
   },
 });
 
@@ -129,8 +128,7 @@ export const getWishlist = query({
 
         return {
           ...base,
-          status:
-            gift.status ?? (gift.purchased ? "purchased" : "up_for_grabs"),
+          status: gift.status,
           statusChangedByName,
         };
       }),
@@ -164,9 +162,6 @@ export const createWishlist = mutation({
     return await ctx.db.insert("wishlists", {
       groupId: args.groupId,
       name,
-      // Keep the legacy recipient field aligned with the owner.
-      recipientUserId: userId,
-      managerIds: [userId],
       createdBy: userId,
     });
   },
@@ -242,8 +237,6 @@ export const addGiftItemToWishlist = mutation({
       title,
       link: args.link,
       status: "up_for_grabs",
-      // Legacy field remains until cleanup.
-      ownerId: wishlist.createdBy,
       groupId: wishlist.groupId,
       wishlistId: args.wishlistId,
     });

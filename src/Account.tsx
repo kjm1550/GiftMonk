@@ -44,15 +44,20 @@ export function Account({ onSelectGroup }: AccountProps) {
     }
   };
 
-  const handleLeaveGroup = async (groupId: string) => {
+  const handleLeaveGroup = async (groupId: string, groupName: string) => {
     if (userGroups && userGroups.length <= 1) {
       toast.error("You must be part of at least one group");
       return;
     }
 
+    const confirmed = window.confirm(
+      `Leave "${groupName}"?\n\nYour gift lists and their gifts in this group will be permanently deleted.`,
+    );
+    if (!confirmed) return;
+
     try {
       await leaveGroup({ groupId: groupId as any });
-      toast.success("Left group successfully!");
+      toast.success("Left group and deleted your gift lists.");
     } catch (error: any) {
       toast.error(error?.message || "Failed to leave group");
     }
@@ -158,7 +163,7 @@ export function Account({ onSelectGroup }: AccountProps) {
                       View
                     </button>
                     <button
-                      onClick={() => void handleLeaveGroup(group._id)}
+                      onClick={() => void handleLeaveGroup(group._id, group.name)}
                       className="text-sm px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                       disabled={userGroups && userGroups.length <= 1}
                       title={userGroups && userGroups.length <= 1 ? "You must be part of at least one group" : ""}

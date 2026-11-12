@@ -1,18 +1,23 @@
 import { internalMutation } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 
 const BATCH_SIZE = 50;
 
+type LegacyGiftItem = Omit<Doc<"giftItems">, "wishlistId" | "status"> & {
+  wishlistId?: Id<"wishlists">;
+  status?: "up_for_grabs" | "claimed" | "purchased";
+  ownerId?: Id<"users">;
+  purchased?: boolean;
+};
+
 /**
- * One-off migration for the wishlist rollout.
+ * Migration order:
+ *   1. backfillWishlists
+ *   2. normalizeWishlists
+ *   3. normalizeGroupMembers
  *
- * For every legacy gift item without a `wishlistId`, create (or reuse) a
- * default wishlist for that gift's owner in its group and attach the gift.
- *
- * Call repeatedly with the returned `continueCursor` until `isDone` is true:
- *   npx convex run migrations:backfillWishlists
- *   npx convex run migrations:backfillWishlists '{"cursor":"<cursor>"}'
+ * Run each one repeatedly with its returned cursor until `isDone` is true.
  */
 export const backfillWishlists = internalMutation({
   args: {
@@ -25,41 +30,113 @@ export const backfillWishlists = internalMutation({
 
     const wishlistCache = new Map<string, Id<"wishlists">>();
 
-    for (const gift of result.page) {
-      if (gift.wishlistId) {
-        continue;
-      }
-
-      const cacheKey = `${gift.groupId}:${gift.ownerId}`;
-      let wishlistId = wishlistCache.get(cacheKey);
+    for (const rawGift of result.page) {
+      const gift = rawGift as LegacyGiftItem;
+      let wishlistId = gift.wishlistId;
 
       if (!wishlistId) {
-        const existing = await ctx.db
-          .query("wishlists")
-          .withIndex("by_group", (q) => q.eq("groupId", gift.groupId))
-          .filter((q) => q.eq(q.field("recipientUserId"), gift.ownerId))
-          .first();
-
-        if (existing) {
-          wishlistId = existing._id;
-        } else {
-          const owner = await ctx.db.get(gift.ownerId);
-          const ownerName = owner?.name ?? owner?.email;
-
-          wishlistId = await ctx.db.insert("wishlists", {
-            groupId: gift.groupId,
-            name: ownerName ? `${ownerName}'s Wishlist` : "My Wishlist",
-            recipientUserId: gift.ownerId,
-            recipientName: ownerName,
-            managerIds: [gift.ownerId],
-            createdBy: gift.ownerId,
-          });
+        const ownerId = gift.ownerId;
+        if (!ownerId) {
+          throw new Error(`Gift ${gift._id} has no wishlistId or ownerId`);
         }
 
-        wishlistCache.set(cacheKey, wishlistId);
+        const cacheKey = `${gift.groupId}:${ownerId}`;
+        wishlistId = wishlistCache.get(cacheKey);
+
+        if (!wishlistId) {
+          const existing = await ctx.db
+            .query("wishlists")
+            .withIndex("by_created_by", (q) => q.eq("createdBy", ownerId))
+            .filter((q) => q.eq(q.field("groupId"), gift.groupId))
+            .first();
+
+          if (existing) {
+            wishlistId = existing._id;
+          } else {
+            const owner = await ctx.db.get(ownerId);
+            const ownerName = owner?.name ?? owner?.email;
+
+            wishlistId = await ctx.db.insert("wishlists", {
+              groupId: gift.groupId,
+              name: ownerName ? `${ownerName}'s Wishlist` : "My Wishlist",
+              createdBy: ownerId,
+            });
+          }
+
+          wishlistCache.set(cacheKey, wishlistId);
+        }
       }
 
-      await ctx.db.patch(gift._id, { wishlistId });
+      if (!wishlistId) {
+        throw new Error(`Could not resolve wishlist for gift ${gift._id}`);
+      }
+
+      const status =
+        gift.status ?? (gift.purchased ? "purchased" : "up_for_grabs");
+
+      await ctx.db.replace(gift._id, {
+        title: gift.title,
+        ...(gift.link !== undefined ? { link: gift.link } : {}),
+        status,
+        ...(gift.statusChangedBy
+          ? { statusChangedBy: gift.statusChangedBy }
+          : {}),
+        groupId: gift.groupId,
+        wishlistId,
+      });
+    }
+
+    return {
+      processed: result.page.length,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
+export const normalizeWishlists = internalMutation({
+  args: {
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const result = await ctx.db
+      .query("wishlists")
+      .paginate({ numItems: BATCH_SIZE, cursor: args.cursor ?? null });
+
+    for (const wishlist of result.page) {
+      if (!wishlist.createdBy) {
+        throw new Error(`Wishlist ${wishlist._id} has no createdBy`);
+      }
+
+      await ctx.db.replace(wishlist._id, {
+        groupId: wishlist.groupId,
+        name: wishlist.name,
+        createdBy: wishlist.createdBy,
+      });
+    }
+
+    return {
+      processed: result.page.length,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
+export const normalizeGroupMembers = internalMutation({
+  args: {
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const result = await ctx.db
+      .query("groupMembers")
+      .paginate({ numItems: BATCH_SIZE, cursor: args.cursor ?? null });
+
+    for (const member of result.page) {
+      await ctx.db.replace(member._id, {
+        groupId: member.groupId,
+        userId: member.userId,
+      });
     }
 
     return {
