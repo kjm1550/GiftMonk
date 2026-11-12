@@ -13,6 +13,11 @@ export function Account({ onSelectGroup }: AccountProps) {
   const [showJoinGroup, setShowJoinGroup] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
+  const [groupToLeave, setGroupToLeave] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [isLeavingGroup, setIsLeavingGroup] = useState(false);
 
   const loggedInUser = useQuery(api.auth.loggedInUser);
   const userGroups = useQuery(api.groups.getUserGroups);
@@ -32,6 +37,23 @@ export function Account({ onSelectGroup }: AccountProps) {
     }
   }, [loggedInUser]);
 
+  // Lock background scrolling and close the confirmation with Escape.
+  useEffect(() => {
+    if (!groupToLeave) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isLeavingGroup) {
+        setGroupToLeave(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [groupToLeave, isLeavingGroup]);
+
   const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -44,22 +66,24 @@ export function Account({ onSelectGroup }: AccountProps) {
     }
   };
 
-  const handleLeaveGroup = async (groupId: string, groupName: string) => {
+  const handleLeaveGroup = async () => {
+    if (!groupToLeave) return;
+
     if (userGroups && userGroups.length <= 1) {
       toast.error("You must be part of at least one group");
+      setGroupToLeave(null);
       return;
     }
 
-    const confirmed = window.confirm(
-      `Leave "${groupName}"?\n\nYour gift lists and their gifts in this group will be permanently deleted.`,
-    );
-    if (!confirmed) return;
-
+    setIsLeavingGroup(true);
     try {
-      await leaveGroup({ groupId: groupId as any });
+      await leaveGroup({ groupId: groupToLeave.id as any });
       toast.success("Left group and deleted your gift lists.");
+      setGroupToLeave(null);
     } catch (error: any) {
       toast.error(error?.message || "Failed to leave group");
+    } finally {
+      setIsLeavingGroup(false);
     }
   };
 
@@ -134,7 +158,7 @@ export function Account({ onSelectGroup }: AccountProps) {
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors"
+            className="min-h-11 w-full rounded-md bg-primary px-4 py-2 text-white transition-colors hover:bg-primary-hover sm:w-auto"
           >
             Update Name
           </button>
@@ -167,7 +191,9 @@ export function Account({ onSelectGroup }: AccountProps) {
                     View
                   </button>
                   <button
-                    onClick={() => void handleLeaveGroup(group._id, group.name)}
+                    onClick={() =>
+                      setGroupToLeave({ id: group._id, name: group.name })
+                    }
                     className="min-h-11 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={userGroups && userGroups.length <= 1}
                     title={userGroups && userGroups.length <= 1 ? "You must be part of at least one group" : ""}
@@ -180,16 +206,16 @@ export function Account({ onSelectGroup }: AccountProps) {
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:flex">
           <button
             onClick={() => setShowJoinGroup(!showJoinGroup)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="min-h-11 rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
           >
             {showJoinGroup ? "Cancel" : "Join Group"}
           </button>
           <button
             onClick={() => setShowCreateGroup(!showCreateGroup)}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            className="min-h-11 rounded-md bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
           >
             {showCreateGroup ? "Cancel" : "Create Group"}
           </button>
@@ -220,7 +246,7 @@ export function Account({ onSelectGroup }: AccountProps) {
                 <button
                   type="submit"
                   disabled={!groupToJoinId}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="min-h-11 w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:opacity-50 sm:w-auto"
                 >
                   Join
                 </button>
@@ -243,13 +269,61 @@ export function Account({ onSelectGroup }: AccountProps) {
             <button
               type="submit"
               disabled={!newGroupName.trim()}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+              className="min-h-11 w-full rounded-md bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700 disabled:opacity-50 sm:w-auto"
             >
               Create
             </button>
           </form>
         )}
       </div>
+
+      {groupToLeave && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4"
+          role="presentation"
+          onClick={() => {
+            if (!isLeavingGroup) setGroupToLeave(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-group-title"
+            className="w-full max-w-md rounded-t-2xl bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom,0px))] shadow-xl sm:rounded-2xl sm:p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2
+              id="leave-group-title"
+              className="text-lg font-semibold text-gray-900"
+            >
+              Leave "{groupToLeave.name}"?
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Your gift lists and their gifts in this group will be permanently
+              deleted. This cannot be undone.
+            </p>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setGroupToLeave(null)}
+                disabled={isLeavingGroup}
+                autoFocus
+                className="min-h-11 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleLeaveGroup()}
+                disabled={isLeavingGroup}
+                className="min-h-11 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-wait disabled:opacity-60"
+              >
+                {isLeavingGroup ? "Leaving..." : "Leave Group"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

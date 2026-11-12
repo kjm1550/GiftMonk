@@ -56,7 +56,7 @@ export function Dashboard() {
           {activeGroup.name}
         </h1>
         {userGroups.length > 1 && (
-          <div className="flex items-center justify-center gap-2 text-sm text-secondary mb-2">
+          <div className="mb-2 flex flex-wrap items-center justify-center gap-2 text-sm text-secondary">
             <label htmlFor="group-switcher">Group</label>
             <select
               id="group-switcher"
@@ -64,7 +64,7 @@ export function Dashboard() {
               onChange={(e) => {
                 setSelectedGroupId(e.target.value);
               }}
-              className="px-3 py-1.5 rounded border border-gray-200 bg-white text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              className="min-h-11 max-w-full rounded border border-gray-200 bg-white px-3 py-2 text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             >
               {userGroups.map((group) => (
                 <option key={group._id} value={group._id}>
@@ -86,7 +86,7 @@ export function Dashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`rounded-md px-6 py-2 font-medium transition-colors ${
+              className={`min-h-11 rounded-md px-6 py-2 font-medium transition-colors ${
                 activeTab === tab.id
                   ? "bg-primary text-white"
                   : "text-gray-600 hover:text-primary"

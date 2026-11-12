@@ -71,7 +71,7 @@ export function GroupSetup() {
             <div className="text-center">
               <button
                 onClick={() => setShowJoinGroup(true)}
-                className="text-primary hover:underline"
+                className="inline-flex min-h-11 w-full items-center justify-center px-2 text-primary hover:underline"
               >
                 Or join an existing group
               </button>
@@ -107,7 +107,7 @@ export function GroupSetup() {
             <div className="text-center">
               <button
                 onClick={() => setShowJoinGroup(false)}
-                className="text-primary hover:underline"
+                className="inline-flex min-h-11 w-full items-center justify-center px-2 text-primary hover:underline"
               >
                 Or create a new group
               </button>

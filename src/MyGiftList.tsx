@@ -62,7 +62,7 @@ export function MyGiftList({ groupId }: MyGiftListProps) {
               setShowCreateForm(!showCreateForm);
               setNewListName("");
             }}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors shrink-0"
+            className="min-h-11 w-full shrink-0 rounded-md bg-primary px-4 py-2 text-center text-white transition-colors hover:bg-primary-hover sm:w-auto"
           >
             {showCreateForm ? "Cancel" : "New List"}
           </button>
@@ -92,7 +92,7 @@ export function MyGiftList({ groupId }: MyGiftListProps) {
               <button
                 type="submit"
                 disabled={!newListName.trim()}
-                className="px-4 py-3 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                className="min-h-11 w-full shrink-0 rounded-md bg-primary px-4 py-3 text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
               >
                 Create List
               </button>
@@ -112,7 +112,7 @@ export function MyGiftList({ groupId }: MyGiftListProps) {
           <button
             type="button"
             onClick={() => setShowCreateForm(true)}
-            className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors"
+            className="mt-4 min-h-11 w-full rounded-md bg-primary px-4 py-2 text-white transition-colors hover:bg-primary-hover sm:w-auto"
           >
             Create your first list
           </button>
@@ -212,7 +212,7 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
+    <div className="rounded-lg border bg-white p-4 shadow-sm sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           {isRenaming ? (
@@ -228,18 +228,18 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
                 autoFocus
                 required
               />
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:flex">
                 <button
                   type="submit"
                   disabled={!renameValue.trim()}
-                  className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsRenaming(false)}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+                  className="min-h-11 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   Cancel
                 </button>
@@ -256,12 +256,12 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
         </div>
 
         {!isRenaming && wishlist.canManage && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
             {wishlist.canAddGifts && (
               <button
                 type="button"
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors"
+                className="col-span-2 min-h-11 rounded-md bg-primary px-4 py-2 text-white transition-colors hover:bg-primary-hover sm:col-auto"
               >
                 {showAddForm ? "Cancel" : "Add Gift"}
               </button>
@@ -269,14 +269,14 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
             <button
               type="button"
               onClick={startRenaming}
-              className="px-3 py-2 text-sm font-medium text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors"
+              className="min-h-11 rounded-md border border-primary px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-white"
             >
               Rename
             </button>
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
-              className="px-3 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
+              className="min-h-11 rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
             >
               Delete
             </button>
@@ -306,7 +306,7 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
           />
           <button
             type="submit"
-            className="w-full px-4 py-3 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors"
+            className="min-h-11 w-full rounded-md bg-primary px-4 py-3 text-white transition-colors hover:bg-primary-hover"
           >
             Add to List
           </button>
@@ -333,7 +333,7 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
                     href={gift.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary hover:underline text-sm"
+                    className="inline-flex min-h-11 items-center text-sm text-primary hover:underline"
                   >
                     View Link
                   </a>
@@ -343,7 +343,7 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
                 <button
                   type="button"
                   onClick={() => void handleDeleteGift(gift._id)}
-                  className="shrink-0 text-sm font-medium text-red-600 hover:text-red-800"
+                  className="min-h-11 shrink-0 rounded-md px-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-800 active:bg-red-100"
                 >
                   Remove
                 </button>
@@ -359,18 +359,18 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
             Delete <span className="font-semibold">{wishlist.name}</span> and
             all of its gifts? This cannot be undone.
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <button
               type="button"
               onClick={() => void handleDeleteList()}
-              className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+              className="min-h-11 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
             >
               Delete List
             </button>
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
-              className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+              className="min-h-11 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
             >
               Cancel
             </button>
