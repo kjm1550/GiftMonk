@@ -97,14 +97,16 @@ export function Account({ onSelectGroup }: AccountProps) {
   );
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-primary mb-2">Account Settings</h1>
-  <p className="text-secondary">Manage your profile and group memberships</p>
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
+      <div className="mb-4 text-center sm:mb-8">
+        <h1 className="mb-2 text-2xl font-bold text-primary sm:text-3xl">
+          Account Settings
+        </h1>
+        <p className="text-secondary">Manage your profile and group memberships</p>
       </div>
 
       {/* User Profile */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="rounded-lg border bg-white p-4 shadow-sm sm:p-6">
         <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
   <form onSubmit={(e) => void handleUpdateName(e)} className="space-y-4">
           <div>
@@ -140,7 +142,7 @@ export function Account({ onSelectGroup }: AccountProps) {
       </div>
 
       {/* Group Management */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="rounded-lg border bg-white p-4 shadow-sm sm:p-6">
         <h2 className="text-xl font-semibold mb-4">Group Memberships</h2>
         
         <div className="space-y-3 mb-6">
@@ -150,27 +152,28 @@ export function Account({ onSelectGroup }: AccountProps) {
             </p>
           ) : (
             userGroups?.map((group) => (
-              <div key={group._id} className="p-4 border rounded-lg border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{group.name}</h3>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => onSelectGroup(group._id)}
-                      className="text-sm px-3 py-1 bg-primary text-white rounded hover:bg-primary-hover"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => void handleLeaveGroup(group._id, group.name)}
-                      className="text-sm px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                      disabled={userGroups && userGroups.length <= 1}
-                      title={userGroups && userGroups.length <= 1 ? "You must be part of at least one group" : ""}
-                    >
-                      Leave
-                    </button>
-                  </div>
+              <div
+                key={group._id}
+                className="rounded-lg border border-gray-200 p-4"
+              >
+                <h3 className="break-words font-medium text-gray-900">
+                  {group.name}
+                </h3>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => onSelectGroup(group._id)}
+                    className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-hover"
+                  >
+                    View
+                  </button>
+                  <button
+                    onClick={() => void handleLeaveGroup(group._id, group.name)}
+                    className="min-h-11 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={userGroups && userGroups.length <= 1}
+                    title={userGroups && userGroups.length <= 1 ? "You must be part of at least one group" : ""}
+                  >
+                    Leave
+                  </button>
                 </div>
               </div>
             ))

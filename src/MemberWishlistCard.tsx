@@ -29,7 +29,7 @@ export function MemberWishlistCard({
 
   if (wishlist === undefined) {
     return (
-      <div className="rounded-lg border border-gray-200 p-4 flex justify-center">
+      <div className="flex justify-center rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -106,8 +106,10 @@ export function MemberWishlistCard({
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 p-4">
-      <h3 className="text-lg font-semibold text-gray-900">{wishlist.name}</h3>
+    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+      <h3 className="break-words text-lg font-semibold text-gray-900">
+        {wishlist.name}
+      </h3>
       <p className="text-sm text-gray-500">{ownerEmail}</p>
 
       <div className="mt-3 space-y-3">

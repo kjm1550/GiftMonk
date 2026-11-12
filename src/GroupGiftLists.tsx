@@ -15,7 +15,7 @@ export function GroupGiftLists({ groupId }: GroupGiftListsProps) {
 
   if (groupsWithMembers === undefined || groupWishlists === undefined) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-6 flex justify-center">
+      <div className="flex justify-center rounded-lg border bg-white p-4 shadow-sm sm:p-6">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -32,21 +32,25 @@ export function GroupGiftLists({ groupId }: GroupGiftListsProps) {
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <h2 className="text-2xl font-bold text-primary mb-6">
+    <div>
+      <h2 className="mb-4 text-2xl font-bold text-primary sm:mb-6">
         Group's Gift Lists
       </h2>
 
       {members.length === 0 ? (
-        <p className="text-gray-500 text-sm pl-4">
-          No other members in this group yet.
-        </p>
+        <div className="rounded-lg border bg-white p-6 text-center shadow-sm">
+          <p className="text-sm text-gray-500">
+            No other members in this group yet.
+          </p>
+        </div>
       ) : visibleLists.length === 0 ? (
-        <p className="text-gray-500 text-sm pl-4">
-          No gift lists have been created yet.
-        </p>
+        <div className="rounded-lg border bg-white p-6 text-center shadow-sm">
+          <p className="text-sm text-gray-500">
+            No gift lists have been created yet.
+          </p>
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {visibleLists.map((list) => (
             <MemberWishlistCard
               key={list._id}

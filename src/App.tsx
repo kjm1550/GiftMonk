@@ -8,14 +8,14 @@ import { Dashboard } from "./Dashboard";
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm h-16 flex justify-between items-center border-b shadow-sm px-4">
-        <h2 className="text-xl font-semibold text-primary">🎁 Gift Monk</h2>
+    <div className="flex min-h-dvh flex-col bg-gray-50">
+      <header className="sticky top-0 z-10 flex min-h-14 items-center justify-between border-b bg-white/80 px-4 pt-[env(safe-area-inset-top,0px)] shadow-sm backdrop-blur-sm sm:min-h-16">
+        <h2 className="text-lg font-semibold text-primary sm:text-xl">🎁 Gift Monk</h2>
         <Authenticated>
           <SignOutButton />
         </Authenticated>
       </header>
-      <main className="flex-1 p-8">
+      <main className="flex-1 px-4 py-5 sm:px-6 sm:py-8">
         <Content />
       </main>
       <Toaster />
@@ -29,7 +29,7 @@ function Content() {
 
   if (loggedInUser === undefined || userGroup === undefined) {
     return (
-      <div className="flex justify-center items-center">
+      <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -43,9 +43,11 @@ function Content() {
       
       <Unauthenticated>
         <div className="max-w-md mx-auto text-center">
-          <div className="mb-8">
-            <h1 className="text-5xl font-bold text-primary mb-4">🎁 Gift Monk</h1>
-            <p className="text-xl text-secondary">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="mb-3 text-3xl font-bold text-primary sm:mb-4 sm:text-5xl">
+              🎁 Gift Monk
+            </h1>
+            <p className="text-base text-secondary sm:text-xl">
               Share gift wishlists with your group
             </p>
           </div>

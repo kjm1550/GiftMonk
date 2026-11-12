@@ -15,7 +15,7 @@ export function Dashboard() {
 
   if (userGroups === undefined || loggedInUser === undefined) {
     return (
-      <div className="flex justify-center items-center">
+      <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -27,16 +27,32 @@ export function Dashboard() {
 
   if (!activeGroup) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-6 text-center">
+      <div className="rounded-lg border bg-white p-4 text-center shadow-sm sm:p-6">
         <p className="text-gray-500">You're not part of any groups yet.</p>
       </div>
     );
   }
 
+  const tabs = [
+    {
+      id: "my-list",
+      label: "My Gift Lists",
+      shortLabel: "My Lists",
+      icon: "🎁",
+    },
+    {
+      id: "group-gifts",
+      label: "Group's Gift Lists",
+      shortLabel: "Group",
+      icon: "👥",
+    },
+    { id: "account", label: "Account", shortLabel: "Account", icon: "👤" },
+  ] as const;
+
   return (
-    <div>
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-primary mb-2">
+    <div className="pb-24 sm:pb-0">
+      <div className="mb-4 text-center sm:mb-8">
+        <h1 className="mb-2 text-2xl font-bold text-primary sm:text-3xl">
           {activeGroup.name}
         </h1>
         {userGroups.length > 1 && (
@@ -63,40 +79,52 @@ export function Dashboard() {
         </p>
       </div>
 
-      <div className="flex justify-center mb-6">
-        <div className="w-full sm:w-auto bg-white rounded-lg p-1 shadow-sm border flex flex-wrap justify-center gap-1">
-          <button
-            onClick={() => setActiveTab("my-list")}
-            className={`px-4 sm:px-6 py-2 rounded-md font-medium transition-colors ${
-              activeTab === "my-list"
-                ? "bg-primary text-white"
-                : "text-gray-600 hover:text-primary"
-            }`}
-          >
-            My Gift Lists
-          </button>
-          <button
-            onClick={() => setActiveTab("group-gifts")}
-            className={`px-4 sm:px-6 py-2 rounded-md font-medium transition-colors ${
-              activeTab === "group-gifts"
-                ? "bg-primary text-white"
-                : "text-gray-600 hover:text-primary"
-            }`}
-          >
-            Group's Gift Lists
-          </button>
-          <button
-            onClick={() => setActiveTab("account")}
-            className={`px-4 sm:px-6 py-2 rounded-md font-medium transition-colors ${
-              activeTab === "account"
-                ? "bg-primary text-white"
-                : "text-gray-600 hover:text-primary"
-            }`}
-          >
-            Account
-          </button>
+      {/* Desktop / tablet tabs */}
+      <div className="mb-6 hidden justify-center sm:flex">
+        <div className="flex w-auto justify-center gap-1 rounded-lg border bg-white p-1 shadow-sm">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`rounded-md px-6 py-2 font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "bg-primary text-white"
+                  : "text-gray-600 hover:text-primary"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Mobile bottom navigation */}
+      <nav
+        aria-label="Primary"
+        className="fixed inset-x-0 bottom-0 z-20 border-t bg-white/95 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-sm sm:hidden"
+      >
+        <div className="grid grid-cols-3">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                aria-current={isActive ? "page" : undefined}
+                className={`flex min-h-16 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors ${
+                  isActive ? "text-primary" : "text-gray-500"
+                }`}
+              >
+                <span aria-hidden="true" className="text-lg leading-none">
+                  {tab.icon}
+                </span>
+                <span>{tab.shortLabel}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
       <div className="max-w-4xl mx-auto">
         {activeTab === "my-list" && (

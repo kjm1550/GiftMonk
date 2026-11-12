@@ -33,7 +33,7 @@ export function MyGiftList({ groupId }: MyGiftListProps) {
 
   if (myLists === undefined) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-6 flex justify-center">
+      <div className="flex justify-center rounded-lg border bg-white p-4 shadow-sm sm:p-6">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -45,10 +45,12 @@ export function MyGiftList({ groupId }: MyGiftListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="rounded-lg border bg-white p-4 shadow-sm sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-primary">My Gift Lists</h2>
+            <h2 className="text-xl font-bold text-primary sm:text-2xl">
+              My Gift Lists
+            </h2>
             <p className="mt-1 text-sm text-gray-500">
               These lists are shared with your active group. Only you can add
               gifts to them.
@@ -103,7 +105,7 @@ export function MyGiftList({ groupId }: MyGiftListProps) {
       </div>
 
       {sortedLists.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border p-6 text-center">
+        <div className="rounded-lg border bg-white p-4 text-center shadow-sm sm:p-6">
           <p className="text-gray-500">
             You don't have any gift lists in this group yet.
           </p>
@@ -203,7 +205,7 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
 
   if (wishlist === undefined) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-6 flex justify-center">
+      <div className="flex justify-center rounded-lg border bg-white p-4 shadow-sm sm:p-6">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );

@@ -11,6 +11,10 @@
   @apply text-slate-600;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family:
     "Inter Variable",
@@ -30,6 +34,25 @@ body {
     "Noto Color Emoji";
   color: var(--color-dark);
   background: var(--color-light);
+  min-height: 100dvh;
+  overscroll-behavior-y: contain;
+}
+
+/* Keep form controls at 16px on phones so iOS Safari does not zoom on focus */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Instant, flash-free taps on touch devices */
+button,
+a,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 /* only use this to update the style of the auth input fields. use a different class for all other input fields */
