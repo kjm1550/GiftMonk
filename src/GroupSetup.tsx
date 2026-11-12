@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
+import { SignOutButton } from "./SignOutButton";
 
 export function GroupSetup() {
   const [groupName, setGroupName] = useState("");
@@ -38,12 +39,14 @@ export function GroupSetup() {
 
   return (
     <div className="max-w-md mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-primary mb-2">Welcome to Gift Monk!</h1>
+      <div className="mb-6 text-center sm:mb-8">
+        <h1 className="mb-2 text-2xl font-bold text-primary sm:text-3xl">
+          Welcome to Gift Monk!
+        </h1>
         <p className="text-secondary">Create or join a group to get started</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
+      <div className="space-y-6 rounded-lg border bg-white p-4 shadow-sm sm:p-6">
         {!showJoinGroup ? (
           <>
             <div>
@@ -69,7 +72,7 @@ export function GroupSetup() {
             <div className="text-center">
               <button
                 onClick={() => setShowJoinGroup(true)}
-                className="text-primary hover:underline"
+                className="inline-flex min-h-11 w-full items-center justify-center px-2 text-primary hover:underline"
               >
                 Or join an existing group
               </button>
@@ -105,13 +108,18 @@ export function GroupSetup() {
             <div className="text-center">
               <button
                 onClick={() => setShowJoinGroup(false)}
-                className="text-primary hover:underline"
+                className="inline-flex min-h-11 w-full items-center justify-center px-2 text-primary hover:underline"
               >
                 Or create a new group
               </button>
             </div>
           </>
         )}
+      </div>
+
+      {/* Mobile-only sign out; desktop uses the header button */}
+      <div className="mt-4 sm:hidden">
+        <SignOutButton className="w-full" />
       </div>
     </div>
   );

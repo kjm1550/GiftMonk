@@ -57,7 +57,7 @@ export function SignInForm() {
           </span>
           <button
             type="button"
-            className="text-primary hover:text-primary-hover hover:underline font-medium cursor-pointer"
+            className="inline-flex min-h-11 cursor-pointer items-center justify-center px-1 font-medium text-primary hover:text-primary-hover hover:underline"
             onClick={() => setFlow(flow === "signIn" ? "signUp" : "signIn")}
           >
             {flow === "signIn" ? "Sign up instead" : "Sign in instead"}

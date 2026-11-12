@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
+import { BottomSheet } from "./BottomSheet";
+import { SignOutButton } from "./SignOutButton";
 
 interface AccountProps {
   onSelectGroup: (groupId: string) => void;
@@ -13,6 +15,11 @@ export function Account({ onSelectGroup }: AccountProps) {
   const [showJoinGroup, setShowJoinGroup] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
+  const [groupToLeave, setGroupToLeave] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [isLeavingGroup, setIsLeavingGroup] = useState(false);
 
   const loggedInUser = useQuery(api.auth.loggedInUser);
   const userGroups = useQuery(api.groups.getUserGroups);
@@ -44,22 +51,24 @@ export function Account({ onSelectGroup }: AccountProps) {
     }
   };
 
-  const handleLeaveGroup = async (groupId: string, groupName: string) => {
+  const handleLeaveGroup = async () => {
+    if (!groupToLeave) return;
+
     if (userGroups && userGroups.length <= 1) {
       toast.error("You must be part of at least one group");
+      setGroupToLeave(null);
       return;
     }
 
-    const confirmed = window.confirm(
-      `Leave "${groupName}"?\n\nYour gift lists and their gifts in this group will be permanently deleted.`,
-    );
-    if (!confirmed) return;
-
+    setIsLeavingGroup(true);
     try {
-      await leaveGroup({ groupId: groupId as any });
+      await leaveGroup({ groupId: groupToLeave.id as any });
       toast.success("Left group and deleted your gift lists.");
+      setGroupToLeave(null);
     } catch (error: any) {
       toast.error(error?.message || "Failed to leave group");
+    } finally {
+      setIsLeavingGroup(false);
     }
   };
 
@@ -97,14 +106,16 @@ export function Account({ onSelectGroup }: AccountProps) {
   );
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-primary mb-2">Account Settings</h1>
-  <p className="text-secondary">Manage your profile and group memberships</p>
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
+      <div className="mb-4 text-center sm:mb-8">
+        <h1 className="mb-2 text-2xl font-bold text-primary sm:text-3xl">
+          Account Settings
+        </h1>
+        <p className="text-secondary">Manage your profile and group memberships</p>
       </div>
 
       {/* User Profile */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="rounded-lg border bg-white p-4 shadow-sm sm:p-6">
         <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
   <form onSubmit={(e) => void handleUpdateName(e)} className="space-y-4">
           <div>
@@ -132,7 +143,7 @@ export function Account({ onSelectGroup }: AccountProps) {
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors"
+            className="min-h-11 w-full rounded-md bg-primary px-4 py-2 text-white transition-colors hover:bg-primary-hover sm:w-auto"
           >
             Update Name
           </button>
@@ -140,7 +151,7 @@ export function Account({ onSelectGroup }: AccountProps) {
       </div>
 
       {/* Group Management */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="rounded-lg border bg-white p-4 shadow-sm sm:p-6">
         <h2 className="text-xl font-semibold mb-4">Group Memberships</h2>
         
         <div className="space-y-3 mb-6">
@@ -150,21 +161,26 @@ export function Account({ onSelectGroup }: AccountProps) {
             </p>
           ) : (
             userGroups?.map((group) => (
-              <div key={group._id} className="p-4 border rounded-lg border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{group.name}</h3>
-                  </div>
-                  <div className="flex gap-2">
+              <div
+                key={group._id}
+                className="rounded-lg border border-gray-200 p-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="min-w-0 break-words font-medium text-gray-900">
+                    {group.name}
+                  </h3>
+                  <div className="flex shrink-0 gap-2">
                     <button
                       onClick={() => onSelectGroup(group._id)}
-                      className="text-sm px-3 py-1 bg-primary text-white rounded hover:bg-primary-hover"
+                      className="rounded-md bg-primary px-3 py-1 text-sm font-medium text-white hover:bg-primary-hover"
                     >
                       View
                     </button>
                     <button
-                      onClick={() => void handleLeaveGroup(group._id, group.name)}
-                      className="text-sm px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                      onClick={() =>
+                        setGroupToLeave({ id: group._id, name: group.name })
+                      }
+                      className="rounded-md bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={userGroups && userGroups.length <= 1}
                       title={userGroups && userGroups.length <= 1 ? "You must be part of at least one group" : ""}
                     >
@@ -177,16 +193,16 @@ export function Account({ onSelectGroup }: AccountProps) {
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:flex">
           <button
             onClick={() => setShowJoinGroup(!showJoinGroup)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="min-h-11 rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
           >
             {showJoinGroup ? "Cancel" : "Join Group"}
           </button>
           <button
             onClick={() => setShowCreateGroup(!showCreateGroup)}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            className="min-h-11 rounded-md bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
           >
             {showCreateGroup ? "Cancel" : "Create Group"}
           </button>
@@ -217,7 +233,7 @@ export function Account({ onSelectGroup }: AccountProps) {
                 <button
                   type="submit"
                   disabled={!groupToJoinId}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="min-h-11 w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:opacity-50 sm:w-auto"
                 >
                   Join
                 </button>
@@ -240,13 +256,54 @@ export function Account({ onSelectGroup }: AccountProps) {
             <button
               type="submit"
               disabled={!newGroupName.trim()}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+              className="min-h-11 w-full rounded-md bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700 disabled:opacity-50 sm:w-auto"
             >
               Create
             </button>
           </form>
         )}
       </div>
+
+      {/* Session (mobile only; desktop sign-out lives in the header) */}
+      <div className="rounded-lg border bg-white p-4 shadow-sm sm:hidden">
+        <h2 className="mb-1 text-xl font-semibold">Session</h2>
+        <p className="mb-3 text-sm text-gray-500">
+          Sign out of Gift Monk on this device.
+        </p>
+        <SignOutButton className="w-full" />
+      </div>
+
+      <BottomSheet
+        open={Boolean(groupToLeave)}
+        onClose={() => {
+          if (!isLeavingGroup) setGroupToLeave(null);
+        }}
+        title={groupToLeave ? `Leave "${groupToLeave.name}"?` : "Leave group?"}
+      >
+        <p className="text-sm text-gray-600">
+          Your gift lists and their gifts in this group will be permanently
+          deleted. This cannot be undone.
+        </p>
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setGroupToLeave(null)}
+            disabled={isLeavingGroup}
+            autoFocus
+            className="min-h-11 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleLeaveGroup()}
+            disabled={isLeavingGroup}
+            className="min-h-11 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-wait disabled:opacity-60"
+          >
+            {isLeavingGroup ? "Leaving..." : "Leave Group"}
+          </button>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

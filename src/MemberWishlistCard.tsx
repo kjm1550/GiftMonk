@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 import { toast } from "sonner";
+import { CardSkeleton } from "./Skeleton";
 
 type GiftStatus = "up_for_grabs" | "claimed" | "purchased";
 
@@ -12,6 +14,9 @@ export function MemberWishlistCard({
   wishlistId: Id<"wishlists">;
   ownerEmail: string;
 }) {
+  const [updatingGiftId, setUpdatingGiftId] = useState<Id<"giftItems"> | null>(
+    null,
+  );
   const wishlist = useQuery(api.wishlists.getWishlist, { wishlistId });
   const updateGiftStatus = useMutation(api.wishlists.updateWishlistGiftStatus);
 
@@ -19,23 +24,22 @@ export function MemberWishlistCard({
     giftId: Id<"giftItems">,
     newStatus: GiftStatus,
   ) => {
+    setUpdatingGiftId(giftId);
     try {
       await updateGiftStatus({ giftId, status: newStatus });
       toast.success("Gift status updated.");
     } catch (error: any) {
       toast.error(error?.message || "Failed to update gift status.");
+    } finally {
+      setUpdatingGiftId(null);
     }
   };
 
   if (wishlist === undefined) {
-    return (
-      <div className="rounded-lg border border-gray-200 p-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <CardSkeleton rows={2} />;
   }
 
-  const getStatusColor = (status: GiftStatus) => {
+  const getStatusBackground = (status: GiftStatus) => {
     switch (status) {
       case "purchased":
         return "bg-green-50 border-green-200";
@@ -43,6 +47,17 @@ export function MemberWishlistCard({
         return "bg-yellow-50 border-yellow-200";
       default:
         return "border-gray-200 hover:bg-gray-50";
+    }
+  };
+
+  const getTitleColor = (status: GiftStatus) => {
+    switch (status) {
+      case "purchased":
+        return "text-green-800 line-through";
+      case "claimed":
+        return "text-yellow-800";
+      default:
+        return "text-gray-900";
     }
   };
 
@@ -65,8 +80,6 @@ export function MemberWishlistCard({
         return "purchased";
       case "purchased":
         return "up_for_grabs";
-      default:
-        return "claimed";
     }
   };
 
@@ -78,8 +91,6 @@ export function MemberWishlistCard({
         return "Mark Purchased";
       case "purchased":
         return "Reset";
-      default:
-        return "Claim";
     }
   };
 
@@ -94,21 +105,12 @@ export function MemberWishlistCard({
     }
   };
 
-  const getTitleColor = (status: GiftStatus) => {
-    switch (status) {
-      case "purchased":
-        return "text-green-800 line-through";
-      case "claimed":
-        return "text-yellow-800";
-      default:
-        return "text-gray-900";
-    }
-  };
-
   return (
-    <div className="rounded-lg border border-gray-200 p-4">
-      <h3 className="text-lg font-semibold text-gray-900">{wishlist.name}</h3>
-      <p className="text-sm text-gray-500">{ownerEmail}</p>
+    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+      <h3 className="break-words text-lg font-semibold text-gray-900">
+        {wishlist.name}
+      </h3>
+      <p className="break-all text-sm text-gray-500">{ownerEmail}</p>
 
       <div className="mt-3 space-y-3">
         {wishlist.gifts.length === 0 ? (
@@ -118,41 +120,50 @@ export function MemberWishlistCard({
         ) : (
           wishlist.gifts.map((gift) => {
             const status = gift.status ?? "up_for_grabs";
+            const isUpdating = updatingGiftId === gift._id;
 
             return (
               <div
                 key={gift._id}
-                className={`p-4 border rounded-lg transition-colors ${getStatusColor(status)}`}
+                className={`rounded-lg border p-3 transition-colors sm:p-4 ${getStatusBackground(status)}`}
               >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <h4 className={`break-words font-medium ${getTitleColor(status)}`}>
+                    <h4
+                      className={`break-words font-medium ${getTitleColor(status)}`}
+                    >
                       {gift.title}
                     </h4>
+
                     {gift.link && (
                       <a
                         href={gift.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:underline text-sm"
+                        className="inline-flex min-h-11 items-center text-sm text-primary hover:underline"
                       >
                         View Link
                       </a>
                     )}
-                    <p className="text-xs text-gray-500 mt-1">
+
+                    <p className="text-xs text-gray-500">
                       Status: {getStatusText(status)}
                       {status !== "up_for_grabs" &&
                         gift.statusChangedByName &&
                         ` by ${gift.statusChangedByName}`}
                     </p>
                   </div>
+
                   <button
+                    type="button"
                     onClick={() =>
                       void handleStatusChange(gift._id, getNextStatus(status))
                     }
-                    className={`px-4 py-2 rounded-md font-medium transition-colors shrink-0 ${getButtonColor(status)}`}
+                    disabled={isUpdating}
+                    aria-busy={isUpdating}
+                    className={`min-h-11 shrink-0 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors disabled:cursor-wait disabled:opacity-60 ${getButtonColor(status)}`}
                   >
-                    {getNextStatusText(status)}
+                    {isUpdating ? "Updating..." : getNextStatusText(status)}
                   </button>
                 </div>
               </div>
