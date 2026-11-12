@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
+import { BottomSheet } from "./BottomSheet";
+import { SignOutButton } from "./SignOutButton";
 
 interface AccountProps {
   onSelectGroup: (groupId: string) => void;
@@ -36,23 +38,6 @@ export function Account({ onSelectGroup }: AccountProps) {
       setName(loggedInUser.email);
     }
   }, [loggedInUser]);
-
-  // Lock background scrolling and close the confirmation with Escape.
-  useEffect(() => {
-    if (!groupToLeave) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !isLeavingGroup) {
-        setGroupToLeave(null);
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [groupToLeave, isLeavingGroup]);
 
   const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,26 +165,28 @@ export function Account({ onSelectGroup }: AccountProps) {
                 key={group._id}
                 className="rounded-lg border border-gray-200 p-4"
               >
-                <h3 className="break-words font-medium text-gray-900">
-                  {group.name}
-                </h3>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => onSelectGroup(group._id)}
-                    className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-hover"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() =>
-                      setGroupToLeave({ id: group._id, name: group.name })
-                    }
-                    className="min-h-11 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={userGroups && userGroups.length <= 1}
-                    title={userGroups && userGroups.length <= 1 ? "You must be part of at least one group" : ""}
-                  >
-                    Leave
-                  </button>
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="min-w-0 break-words font-medium text-gray-900">
+                    {group.name}
+                  </h3>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      onClick={() => onSelectGroup(group._id)}
+                      className="rounded-md bg-primary px-3 py-1 text-sm font-medium text-white hover:bg-primary-hover"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() =>
+                        setGroupToLeave({ id: group._id, name: group.name })
+                      }
+                      className="rounded-md bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={userGroups && userGroups.length <= 1}
+                      title={userGroups && userGroups.length <= 1 ? "You must be part of at least one group" : ""}
+                    >
+                      Leave
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -277,53 +264,46 @@ export function Account({ onSelectGroup }: AccountProps) {
         )}
       </div>
 
-      {groupToLeave && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4"
-          role="presentation"
-          onClick={() => {
-            if (!isLeavingGroup) setGroupToLeave(null);
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="leave-group-title"
-            className="w-full max-w-md rounded-t-2xl bg-white p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom,0px))] shadow-xl sm:rounded-2xl sm:p-6"
-            onClick={(event) => event.stopPropagation()}
+      {/* Session (mobile only; desktop sign-out lives in the header) */}
+      <div className="rounded-lg border bg-white p-4 shadow-sm sm:hidden">
+        <h2 className="mb-1 text-xl font-semibold">Session</h2>
+        <p className="mb-3 text-sm text-gray-500">
+          Sign out of Gift Monk on this device.
+        </p>
+        <SignOutButton className="w-full" />
+      </div>
+
+      <BottomSheet
+        open={Boolean(groupToLeave)}
+        onClose={() => {
+          if (!isLeavingGroup) setGroupToLeave(null);
+        }}
+        title={groupToLeave ? `Leave "${groupToLeave.name}"?` : "Leave group?"}
+      >
+        <p className="text-sm text-gray-600">
+          Your gift lists and their gifts in this group will be permanently
+          deleted. This cannot be undone.
+        </p>
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setGroupToLeave(null)}
+            disabled={isLeavingGroup}
+            autoFocus
+            className="min-h-11 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
-            <h2
-              id="leave-group-title"
-              className="text-lg font-semibold text-gray-900"
-            >
-              Leave "{groupToLeave.name}"?
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Your gift lists and their gifts in this group will be permanently
-              deleted. This cannot be undone.
-            </p>
-            <div className="mt-5 grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setGroupToLeave(null)}
-                disabled={isLeavingGroup}
-                autoFocus
-                className="min-h-11 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleLeaveGroup()}
-                disabled={isLeavingGroup}
-                className="min-h-11 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-wait disabled:opacity-60"
-              >
-                {isLeavingGroup ? "Leaving..." : "Leave Group"}
-              </button>
-            </div>
-          </div>
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleLeaveGroup()}
+            disabled={isLeavingGroup}
+            className="min-h-11 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-wait disabled:opacity-60"
+          >
+            {isLeavingGroup ? "Leaving..." : "Leave Group"}
+          </button>
         </div>
-      )}
+      </BottomSheet>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { SignOutButton } from "./SignOutButton";
 import { Toaster } from "sonner";
 import { GroupSetup } from "./GroupSetup";
 import { Dashboard } from "./Dashboard";
+import { PageSkeleton } from "./Skeleton";
 
 export default function App() {
   return (
@@ -12,7 +13,9 @@ export default function App() {
       <header className="sticky top-0 z-10 flex min-h-14 items-center justify-between border-b bg-white/80 px-4 pt-[env(safe-area-inset-top,0px)] shadow-sm backdrop-blur-sm sm:min-h-16">
         <h2 className="text-lg font-semibold text-primary sm:text-xl">🎁 Gift Monk</h2>
         <Authenticated>
-          <SignOutButton />
+          <div className="hidden sm:block">
+            <SignOutButton />
+          </div>
         </Authenticated>
       </header>
       <main className="flex-1 px-4 py-5 sm:px-6 sm:py-8">
@@ -28,11 +31,7 @@ function Content() {
   const userGroup = useQuery(api.groups.getUserGroup);
 
   if (loggedInUser === undefined || userGroup === undefined) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (

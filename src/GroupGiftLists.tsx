@@ -2,6 +2,7 @@ import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 import { MemberWishlistCard } from "./MemberWishlistCard";
+import { CardSkeleton } from "./Skeleton";
 
 interface GroupGiftListsProps {
   groupId: Id<"groups">;
@@ -14,11 +15,7 @@ export function GroupGiftLists({ groupId }: GroupGiftListsProps) {
   });
 
   if (groupsWithMembers === undefined || groupWishlists === undefined) {
-    return (
-      <div className="flex justify-center rounded-lg border bg-white p-4 shadow-sm sm:p-6">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <CardSkeleton />;
   }
 
   const activeGroup = groupsWithMembers.find(

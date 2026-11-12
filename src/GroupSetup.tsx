@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
+import { SignOutButton } from "./SignOutButton";
 
 export function GroupSetup() {
   const [groupName, setGroupName] = useState("");
@@ -114,6 +115,11 @@ export function GroupSetup() {
             </div>
           </>
         )}
+      </div>
+
+      {/* Mobile-only sign out; desktop uses the header button */}
+      <div className="mt-4 sm:hidden">
+        <SignOutButton className="w-full" />
       </div>
     </div>
   );
