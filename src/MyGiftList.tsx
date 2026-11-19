@@ -138,9 +138,15 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editingGift, setEditingGift] = useState<{
+    id: Id<"giftItems">;
+    title: string;
+    link: string;
+  } | null>(null);
 
   const wishlist = useQuery(api.wishlists.getWishlist, { wishlistId });
   const addGiftItem = useMutation(api.wishlists.addGiftItemToWishlist);
+  const updateGiftItem = useMutation(api.wishlists.updateWishlistGiftItem);
   const deleteGiftItem = useMutation(api.wishlists.deleteWishlistGiftItem);
   const updateWishlist = useMutation(api.wishlists.updateWishlist);
   const deleteWishlist = useMutation(api.wishlists.deleteWishlist);
@@ -172,6 +178,27 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
       toast.success("Gift removed from the list.");
     } catch (error: any) {
       toast.error(error?.message || "Failed to remove gift.");
+    }
+  };
+
+  const handleEditGift = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingGift) return;
+
+    const trimmedTitle = editingGift.title.trim();
+    if (!trimmedTitle) return;
+
+    try {
+      await updateGiftItem({
+        giftId: editingGift.id,
+        title: trimmedTitle,
+        link: editingGift.link.trim() || undefined,
+      });
+      setEditingGift(null);
+      toast.success("Gift updated.");
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to update gift.");
     }
   };
 
@@ -278,13 +305,28 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
                 )}
               </div>
               {wishlist.canManage && (
-                <button
-                  type="button"
-                  onClick={() => void handleDeleteGift(gift._id)}
-                  className="min-h-11 shrink-0 rounded-md px-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-800 active:bg-red-100"
-                >
-                  Remove
-                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditingGift({
+                        id: gift._id,
+                        title: gift.title,
+                        link: gift.link ?? "",
+                      })
+                    }
+                    className="min-h-11 rounded-md px-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10 active:bg-primary/15"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleDeleteGift(gift._id)}
+                    className="min-h-11 shrink-0 rounded-md px-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-800 active:bg-red-100"
+                  >
+                    Remove
+                  </button>
+                </div>
               )}
             </div>
           ))
@@ -359,6 +401,55 @@ function MyWishlistCard({ wishlistId }: { wishlistId: Id<"wishlists"> }) {
             Add to List
           </button>
         </form>
+      </BottomSheet>
+
+      <BottomSheet
+        open={editingGift !== null}
+        onClose={() => setEditingGift(null)}
+        title="Edit gift"
+      >
+        {editingGift && (
+          <form onSubmit={(e) => void handleEditGift(e)} className="space-y-3">
+            <input
+              type="text"
+              placeholder="Gift title"
+              value={editingGift.title}
+              onChange={(e) =>
+                setEditingGift({ ...editingGift, title: e.target.value })
+              }
+              className="w-full rounded border border-gray-200 px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              autoFocus
+              required
+            />
+            <input
+              type="url"
+              inputMode="url"
+              autoCapitalize="none"
+              placeholder="Link (optional)"
+              value={editingGift.link}
+              onChange={(e) =>
+                setEditingGift({ ...editingGift, link: e.target.value })
+              }
+              className="w-full rounded border border-gray-200 px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingGift(null)}
+                className="min-h-11 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!editingGift.title.trim()}
+                className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        )}
       </BottomSheet>
 
       <BottomSheet

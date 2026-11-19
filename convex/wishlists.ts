@@ -243,6 +243,41 @@ export const addGiftItemToWishlist = mutation({
   },
 });
 
+export const updateWishlistGiftItem = mutation({
+  args: {
+    giftId: v.id("giftItems"),
+    title: v.string(),
+    link: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const gift = await ctx.db.get(args.giftId);
+    if (!gift) {
+      throw new Error("Gift item not found");
+    }
+    if (!gift.wishlistId) {
+      throw new Error("Gift item does not belong to a wishlist");
+    }
+
+    const wishlist = await getWishlistOrThrow(ctx, gift.wishlistId);
+    await requireGroupMembership(ctx, userId, wishlist.groupId);
+
+    if (!isOwner(wishlist, userId)) {
+      throw new Error("Only the list creator can edit gifts in this list");
+    }
+
+    const title = args.title.trim();
+    if (!title) {
+      throw new Error("Gift title is required");
+    }
+
+    await ctx.db.patch(args.giftId, {
+      title,
+      link: args.link?.trim() || undefined,
+    });
+  },
+});
+
 export const updateWishlistGiftStatus = mutation({
   args: {
     giftId: v.id("giftItems"),
